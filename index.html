@@ -454,7 +454,7 @@ function showToast(msg, type = '') {
 async function loadSessionMeta() {
   try {
     const rows = await sbGet('tournaments?select=id,name,session,num_rounds&order=created_at.desc');
-    ['mardi','jeudi'].forEach(s => {
+    ['mardi','mercredi','jeudi'].forEach(s => {
       const t = rows.find(r => r.session === s);
       const el = document.getElementById('meta' + s.charAt(0).toUpperCase() + s.slice(1));
       if (t) {
