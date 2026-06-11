@@ -825,6 +825,44 @@ function showView(name) {
   });
 }
 
+function showTournamentList(session, rows) {
+  currentSession = session;
+  const label = session.charAt(0).toUpperCase() + session.slice(1);
+  document.getElementById('listSessionTitle').textContent = `Tournois du ${label}`;
+  document.getElementById('tournamentListContainer').innerHTML = rows.map(t => `
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:.75rem"
+      onclick="selectTournament('${t.id}')">
+      <div>
+        <div style="font-weight:500">${escHtml(t.name)}</div>
+        <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px">
+          ${t.num_rounds} rondes · ${new Date(t.created_at).toLocaleDateString('fr-FR')}
+        </div>
+      </div>
+      <span style="color:var(--accent);font-size:1.2rem">→</span>
+    </div>
+  `).join('');
+  showView('tournamentList');
+}
+
+async function selectTournament(id) {
+  showLoader(true);
+  try {
+    const rows = await sbGet(`tournaments?id=eq.${id}&select=id,name,num_rounds,session&limit=1`);
+    if (rows && rows.length > 0) await loadTournament(rows[0]);
+  } catch(e) {
+    showToast('Erreur de chargement', 'error');
+  } finally {
+    showLoader(false);
+  }
+}
+
+function newTournament() {
+  const label = currentSession.charAt(0).toUpperCase() + currentSession.slice(1);
+  document.getElementById('tournamentName').value = `Tournoi du ${label}`;
+  localPlayers = [];
+  renderSetup();
+  showView('setup');
+}   
 function backToSessions() {
   currentSession = null; tournament = null; players = []; rounds = []; localPlayers = [];
   showView('sessionPicker');
