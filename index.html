@@ -820,7 +820,7 @@ function renderStandings() {
 
 /* ── NAV ──────────────────────────────────────── */
 function showView(name) {
-  ['sessionPickerView','setupView','tournamentView'].forEach(id => {
+  ['sessionPickerView','tournamentListView','setupView','tournamentView'].forEach(id => {
     document.getElementById(id).style.display = id === name+'View' ? 'block' : 'none';
   });
 }
