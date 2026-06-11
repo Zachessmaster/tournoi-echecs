@@ -312,7 +312,15 @@ td { padding: 11px 14px; vertical-align: middle; }
   <!-- ══════════════════════════════════════════════
        VUE 2 : CONFIGURATION
   ══════════════════════════════════════════════ -->
-  <div id="setupView" style="display:none">
+  <div id="tournamentListView" style="display:none">
+  <div style="margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between">
+    <button class="btn btn-sm" onclick="backToSessions()">← Sessions</button>
+    <span id="listSessionTitle" style="font-family:'DM Serif Display',serif;font-size:1.3rem"></span>
+    <button class="btn btn-sm btn-gold" onclick="newTournament()">+ Nouveau</button>
+  </div>
+  <div id="tournamentListContainer"></div>
+</div>
+   <div id="setupView" style="display:none">
     <div style="margin-bottom:1.5rem">
       <button class="btn btn-sm" onclick="backToSessions()">← Sessions</button>
     </div>
