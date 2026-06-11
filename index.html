@@ -888,6 +888,101 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+ /* ── CHRONO ───────────────────────────────────── */
+const CIRCUMFERENCE = 2 * Math.PI * 112;
+let chronoTotal     = 10 * 60;
+let chronoRemaining = chronoTotal;
+let chronoRunning   = false;
+let chronoInterval  = null;
+let audioCtx        = null;
+
+function chronoUpdateDisplay() {
+  const el = document.getElementById('chronoDisplay');
+  const arc = document.getElementById('chronoArc');
+  if (!el || !arc) return;
+  const h = Math.floor(chronoRemaining / 3600);
+  const m = Math.floor((chronoRemaining % 3600) / 60);
+  const s = chronoRemaining % 60;
+  el.textContent = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  const ratio = chronoTotal > 0 ? chronoRemaining / chronoTotal : 1;
+  arc.style.strokeDashoffset = CIRCUMFERENCE * (1 - ratio);
+  el.className = 'time-display';
+  arc.style.stroke = 'var(--accent)';
+  if (ratio <= 0.1) { el.classList.add('danger'); arc.style.stroke = 'var(--red)'; }
+  else if (ratio <= 0.25) { el.classList.add('warning'); arc.style.stroke = 'var(--orange)'; }
+}
+
+function pad(n) { return String(n).padStart(2, '0'); }
+
+function chronoTogglePlay() {
+  if (chronoRunning) { chronoRunning = false; clearInterval(chronoInterval); document.getElementById('chronoBtnPlay').textContent = '▶ Reprendre'; document.getElementById('chronoPhase').textContent = 'En pause'; }
+  else {
+    if (chronoRemaining <= 0) chronoRemaining = chronoTotal;
+    chronoRunning = true;
+    document.getElementById('chronoBtnPlay').textContent = '⏸ Pause';
+    document.getElementById('chronoPhase').textContent = 'En cours';
+    chronoInterval = setInterval(() => {
+      chronoRemaining--;
+      if (chronoRemaining <= 0) {
+        chronoRemaining = 0; chronoUpdateDisplay();
+        clearInterval(chronoInterval); chronoRunning = false;
+        document.getElementById('chronoBtnPlay').textContent = '▶ Démarrer';
+        document.getElementById('chronoPhase').textContent = 'Terminé !';
+        if (document.getElementById('chronoSound').checked) playBeep();
+      } else { chronoUpdateDisplay(); }
+    }, 1000);
+  }
+}
+
+function chronoReset() {
+  chronoRunning = false; clearInterval(chronoInterval);
+  chronoRemaining = chronoTotal;
+  document.getElementById('chronoBtnPlay').textContent = '▶ Démarrer';
+  document.getElementById('chronoPhase').textContent = 'Prêt';
+  chronoUpdateDisplay();
+}
+
+function chronoApplyPreset(minutes, btn) {
+  if (chronoRunning) return;
+  chronoTotal = minutes * 60; chronoRemaining = chronoTotal;
+  document.querySelectorAll('.chrono-preset').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('inputM').value = minutes % 60;
+  document.getElementById('inputH').value = Math.floor(minutes / 60);
+  document.getElementById('inputS').value = 0;
+  document.getElementById('chronoPhase').textContent = 'Prêt';
+  chronoUpdateDisplay();
+}
+
+function chronoApplyCustom() {
+  if (chronoRunning) return;
+  const h = parseInt(document.getElementById('inputH').value) || 0;
+  const m = parseInt(document.getElementById('inputM').value) || 0;
+  const s = parseInt(document.getElementById('inputS').value) || 0;
+  const total = h * 3600 + m * 60 + s;
+  if (total <= 0) return;
+  chronoTotal = total; chronoRemaining = total;
+  document.querySelectorAll('.chrono-preset').forEach(b => b.classList.remove('active'));
+  document.getElementById('chronoPhase').textContent = 'Prêt';
+  chronoUpdateDisplay();
+}
+
+function playBeep() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    [{ freq:880, start:0, dur:.15 },{ freq:880, start:.2, dur:.15 },{ freq:880, start:.4, dur:.15 },{ freq:1320, start:.7, dur:.4 }]
+    .forEach(({ freq, start, dur }) => {
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.frequency.value = freq; osc.type = 'sine';
+      const t = audioCtx.currentTime + start;
+      gain.gain.setValueAtTime(0.4, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.start(t); osc.stop(t + dur + .05);
+    });
+  } catch(e) {}
+}
+   
 /* ── INIT ─────────────────────────────────────── */
 loadSessionMeta();
 </script>
