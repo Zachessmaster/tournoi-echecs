@@ -480,7 +480,7 @@ async function pickSession(session) {
       `tournaments?session=eq.${session}&select=id,name,num_rounds,session&order=created_at.desc&limit=1`
     );
     if (rows && rows.length > 0) {
-      await loadTournament(rows[0]);
+      showTournamentList(session, rows);
     } else {
       // No tournament yet → show setup
       showView('setup');
