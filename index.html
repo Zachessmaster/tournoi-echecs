@@ -876,8 +876,10 @@ function backToSessions() {
 function showTab(name) {
   document.getElementById('roundsTab').style.display    = name === 'rounds'    ? 'block' : 'none';
   document.getElementById('standingsTab').style.display = name === 'standings' ? 'block' : 'none';
+  document.getElementById('chronoTab').style.display    = name === 'chrono'    ? 'block' : 'none';
   document.getElementById('tab-rounds').classList.toggle('active',    name === 'rounds');
   document.getElementById('tab-standings').classList.toggle('active', name === 'standings');
+  document.getElementById('tab-chrono').classList.toggle('active',    name === 'chrono');
 }
 
 /* ── UTILS ────────────────────────────────────── */
