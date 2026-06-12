@@ -948,6 +948,114 @@ function showTab(name) {
   document.getElementById('tab-stats').classList.toggle('active',     name === 'stats');
   if (name === 'stats') renderStats();
 }
+
+   /* ── STATS ────────────────────────────────────── */
+function renderStats() {
+  const select = document.getElementById('statsPlayerSelect');
+  const content = document.getElementById('statsContent');
+
+  // Populate select with current players
+  const currentOptions = [...select.options].map(o => o.value);
+  const playerNames = players.map(p => p.name);
+  if (currentOptions.join() !== ['', ...playerNames].join()) {
+    select.innerHTML = '<option value="">— Choisir un joueur —</option>' +
+      playerNames.map(n => `<option value="${escHtml(n)}">${escHtml(n)}</option>`).join('');
+  }
+
+  const name = select.value;
+  if (!name) { content.innerHTML = ''; return; }
+
+  // Collect all matches involving this player
+  let totalPts = 0, wins = 0, draws = 0, losses = 0;
+  let wPts = 0, wW = 0, wD = 0, wL = 0, wGames = 0;
+  let bPts = 0, bW = 0, bD = 0, bL = 0, bGames = 0;
+  const opponents = {};
+
+  rounds.forEach(r => {
+    // bye
+    if (r.bye_player === name) { totalPts += 1; wins += 1; }
+
+    r.matches.forEach(m => {
+      if (m.white !== name && m.black !== name) return;
+      const isWhite = m.white === name;
+      const opp = isWhite ? m.black : m.white;
+      if (!opponents[opp]) opponents[opp] = { w: 0, d: 0, l: 0 };
+
+      if (!m.result) return;
+
+      const won  = (isWhite && m.result === 'w') || (!isWhite && m.result === 'b');
+      const drew = m.result === 'd';
+
+      if (won)       { totalPts += 1; wins++;  opponents[opp].w++; }
+      else if (drew) { totalPts += .5; draws++; opponents[opp].d++; }
+      else           { losses++;                opponents[opp].l++; }
+
+      if (isWhite) {
+        wGames++;
+        if (won) { wPts += 1; wW++; } else if (drew) { wPts += .5; wD++; } else wL++;
+      } else {
+        bGames++;
+        if (won) { bPts += 1; bW++; } else if (drew) { bPts += .5; bD++; } else bL++;
+      }
+    });
+  });
+
+  const totalGames = wins + draws + losses;
+  const pct = totalGames > 0 ? Math.round((totalPts / totalGames) * 100) : 0;
+  const wPct = wGames > 0 ? Math.round((wPts / wGames) * 100) : 0;
+  const bPct = bGames > 0 ? Math.round((bPts / bGames) * 100) : 0;
+
+  const oppRows = Object.entries(opponents).map(([opp, r]) => {
+    const icon = r.w > r.l ? '✓' : r.l > r.w ? '✗' : '½';
+    const color = r.w > r.l ? 'var(--green)' : r.l > r.w ? 'var(--red)' : 'var(--accent)';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:0.5px solid var(--border)">
+      <span style="font-size:14px;font-weight:500">${escHtml(opp)}</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">${r.w}V · ${r.d}N · ${r.l}D</span>
+        <span style="font-size:1.1rem;color:${color}">${icon}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">Résumé</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;text-align:center">
+        <div><div style="font-family:'DM Mono',monospace;font-size:1.6rem;color:var(--accent)">${fmtPts(totalPts)}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Points</div></div>
+        <div><div style="font-family:'DM Mono',monospace;font-size:1.6rem;color:var(--green)">${wins}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Victoires</div></div>
+        <div><div style="font-family:'DM Mono',monospace;font-size:1.6rem;color:var(--text)">${draws}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Nulles</div></div>
+        <div><div style="font-family:'DM Mono',monospace;font-size:1.6rem;color:var(--red)">${losses}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Défaites</div></div>
+      </div>
+      <div style="margin-top:1rem;background:var(--surface2);border-radius:var(--radius-sm);overflow:hidden;height:6px">
+        <div style="height:100%;width:${pct}%;background:var(--accent);transition:width .4s"></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);text-align:right;margin-top:4px">${pct}% de points</div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">Couleur</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div style="text-align:center;padding:.75rem;background:var(--surface2);border-radius:var(--radius-sm)">
+          <div style="font-size:1.4rem;margin-bottom:4px">⬜</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Blancs</div>
+          <div style="font-family:'DM Mono',monospace;font-size:1.3rem;color:${wPct >= bPct ? 'var(--green)' : 'var(--text)'}">${wPct}%</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${wW}V · ${wD}N · ${wL}D</div>
+        </div>
+        <div style="text-align:center;padding:.75rem;background:var(--surface2);border-radius:var(--radius-sm)">
+          <div style="font-size:1.4rem;margin-bottom:4px">⬛</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem">Noirs</div>
+          <div style="font-family:'DM Mono',monospace;font-size:1.3rem;color:${bPct > wPct ? 'var(--green)' : 'var(--text)'}">${bPct}%</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${bW}V · ${bD}N · ${bL}D</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Confrontations</div>
+      ${oppRows || '<div style="color:var(--muted);font-size:13px;padding:.5rem 0">Aucune partie jouée pour l\'instant</div>'}
+    </div>
+  `;
+}
 /* ── UTILS ────────────────────────────────────── */
 function fmtPts(n) { return n % 1 === 0 ? String(n) : n.toFixed(1); }
 function escHtml(s) {
