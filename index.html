@@ -931,11 +931,13 @@ function showTab(name) {
   document.getElementById('roundsTab').style.display    = name === 'rounds'    ? 'block' : 'none';
   document.getElementById('standingsTab').style.display = name === 'standings' ? 'block' : 'none';
   document.getElementById('chronoTab').style.display    = name === 'chrono'    ? 'block' : 'none';
+  document.getElementById('statsTab').style.display     = name === 'stats'     ? 'block' : 'none';
   document.getElementById('tab-rounds').classList.toggle('active',    name === 'rounds');
   document.getElementById('tab-standings').classList.toggle('active', name === 'standings');
   document.getElementById('tab-chrono').classList.toggle('active',    name === 'chrono');
+  document.getElementById('tab-stats').classList.toggle('active',     name === 'stats');
+  if (name === 'stats') renderStats();
 }
-
 /* ── UTILS ────────────────────────────────────── */
 function fmtPts(n) { return n % 1 === 0 ? String(n) : n.toFixed(1); }
 function escHtml(s) {
