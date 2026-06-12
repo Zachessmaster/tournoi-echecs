@@ -400,6 +400,16 @@ td { padding: 11px 14px; vertical-align: middle; }
       </p>
     </div>
 
+     <div id="statsTab" style="display:none">
+      <div style="margin-bottom:1.25rem">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;font-weight:500;letter-spacing:.05em;text-transform:uppercase">Joueur</label>
+        <select id="statsPlayerSelect" onchange="renderStats()"
+          style="width:100%;background:var(--surface2);border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;padding:9px 12px;outline:none;cursor:pointer">
+          <option value="">— Choisir un joueur —</option>
+        </select>
+      </div>
+      <div id="statsContent"></div>
+    </div>
     <div id="chronoTab" style="display:none">
       <div style="text-align:center;padding:1rem 0">
 
